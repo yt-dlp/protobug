@@ -1,0 +1,38 @@
+name: Release
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # trusted publishing
+      id-token: write
+      # creating a release
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    - name: Install hatch
+      run: pip install hatch
+
+    - name: Build package
+      run: hatch build
+
+    - name: Create release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        tag: ${{ github.ref_name }}
+      run: |
+        gh release create --notes-from-tag "${tag}" dist/*
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@v1.9.0

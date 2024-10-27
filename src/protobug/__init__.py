@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-__version__ = "0.1.0"
-__version_info__ = (0, 1, 0)
-
 from protobug._core import MISSING
 from protobug._core import Bool
 from protobug._core import Bytes
@@ -30,6 +27,8 @@ from protobug._core import zigzag_to_signed
 from protobug._reader import Reader
 from protobug._reader import load
 from protobug._reader import loads
+from protobug._version import __version__
+from protobug._version import __version_tuple__
 from protobug._writer import Writer
 from protobug._writer import dump
 from protobug._writer import dumps
