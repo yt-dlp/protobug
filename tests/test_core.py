@@ -60,7 +60,7 @@ message_type_errors_tests = [
     [test[:-1] for test in message_type_errors_tests],
     ids=[test[-1] for test in message_type_errors_tests],
 )
-def test_message_type_errors(py_type: type, error: Exception):
+def test_message_type_errors(py_type: type, error: Exception) -> None:
     with pytest.raises(type(error), match=error.args[0]):
         protobug.message(py_type)
 
@@ -81,7 +81,7 @@ zigzag_tests = [
     zigzag_tests,
     ids=[f"{a} to {b}" for a, b in zigzag_tests],
 )
-def test_signed_to_zigzag(input: int, output: int):
+def test_signed_to_zigzag(input: int, output: int) -> None:
     assert protobug.signed_to_zigzag(input) == output
 
 
@@ -90,5 +90,5 @@ def test_signed_to_zigzag(input: int, output: int):
     [(b, a) for a, b in zigzag_tests],
     ids=[f"{b} to {a}" for a, b in zigzag_tests],
 )
-def test_zigzag_to_signed(input: int, output: int):
+def test_zigzag_to_signed(input: int, output: int) -> None:
     assert protobug.zigzag_to_signed(input) == output

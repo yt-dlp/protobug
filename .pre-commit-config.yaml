@@ -6,3 +6,9 @@ repos:
     entry: hatch fmt
     language: system
     types: [python]
+
+  - id: types
+    name: Check types
+    entry: hatch run types:check
+    language: system
+    types: [python]

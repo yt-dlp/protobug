@@ -75,21 +75,21 @@ test_data = [
     ids=[test[-1] for test in test_data],
 )
 def test_dump(
-    data,
+    data: typing.Any,
     expected: bytes | Exception,
     msg: str,
-):
+) -> None:
     py_type = type(data)
     msg = f"encoding from {py_type}"
     if isinstance(expected, Exception):
-        with pytest.raises(type(expected), match=expected.args[0], msg=msg):
+        with pytest.raises(type(expected), match=expected.args[0]):
             protobug.dumps(data)
 
     else:
         assert protobug.dumps(data) == expected, msg
 
 
-def test_writer_behavior():
+def test_writer_behavior() -> None:
     with io.BytesIO() as buffer:
         protobug.dump(tests.model.Message1(), buffer)
         assert not buffer.closed, "buffer should not be closed after a dump"

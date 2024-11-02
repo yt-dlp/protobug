@@ -38,3 +38,18 @@ jobs:
 
     - name: Run static code analysis
       run: hatch fmt --check
+
+  type-checking:
+    name: Type checking
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v3
+      with:
+        version: latest
+
+    - name: Install hatch
+      run: uv tool install hatch
+
+    - name: Run tests
+      run: hatch run types:check

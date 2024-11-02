@@ -35,7 +35,7 @@ class ProtoMode(enum.Enum):
     Packed = enum.auto()
     Repeated = enum.auto()
 
-    def is_multiple(self, /):
+    def is_multiple(self, /) -> bool:
         return self is self.Packed or self is self.Repeated
 
 
@@ -61,25 +61,25 @@ class ProtoType(enum.Enum):
     Bytes = enum.auto()
     Embed = enum.auto()
 
-    def wire_type(self, /):
+    def wire_type(self, /) -> WireType:
         return {
-            self.Int32: WireType.VARINT,
-            self.Int64: WireType.VARINT,
-            self.UInt32: WireType.VARINT,
-            self.UInt64: WireType.VARINT,
-            self.SInt32: WireType.VARINT,
-            self.SInt64: WireType.VARINT,
-            self.Enum: WireType.VARINT,
-            self.Bool: WireType.VARINT,
-            self.Fixed32: WireType.I32,
-            self.SFixed32: WireType.I32,
-            self.Float: WireType.I32,
-            self.Fixed64: WireType.I64,
-            self.SFixed64: WireType.I64,
-            self.Double: WireType.I64,
-            self.Bytes: WireType.LEN,
-            self.String: WireType.LEN,
-            self.Embed: WireType.LEN,
+            typing.cast(ProtoType, self.Int32): WireType.VARINT,
+            typing.cast(ProtoType, self.Int64): WireType.VARINT,
+            typing.cast(ProtoType, self.UInt32): WireType.VARINT,
+            typing.cast(ProtoType, self.UInt64): WireType.VARINT,
+            typing.cast(ProtoType, self.SInt32): WireType.VARINT,
+            typing.cast(ProtoType, self.SInt64): WireType.VARINT,
+            typing.cast(ProtoType, self.Enum): WireType.VARINT,
+            typing.cast(ProtoType, self.Bool): WireType.VARINT,
+            typing.cast(ProtoType, self.Fixed32): WireType.I32,
+            typing.cast(ProtoType, self.SFixed32): WireType.I32,
+            typing.cast(ProtoType, self.Float): WireType.I32,
+            typing.cast(ProtoType, self.Fixed64): WireType.I64,
+            typing.cast(ProtoType, self.SFixed64): WireType.I64,
+            typing.cast(ProtoType, self.Double): WireType.I64,
+            typing.cast(ProtoType, self.Bytes): WireType.LEN,
+            typing.cast(ProtoType, self.String): WireType.LEN,
+            typing.cast(ProtoType, self.Embed): WireType.LEN,
         }[self]
 
 
@@ -155,7 +155,9 @@ def field(pid: int, /, *, default: T) -> T: ...
 def field(pid: int, /, *, default_factory: typing.Callable[[], T]) -> T: ...
 
 
-def field(pid: int, /, *, default=MISSING, default_factory=MISSING):
+def field(
+    pid: int, /, *, default: typing.Any = MISSING, default_factory: typing.Any = MISSING
+) -> typing.Any:
     metadata = {_METADATA_TAG_NAME: pid}
     if default is not MISSING:
         return dataclasses.field(default=default, metadata=metadata)
@@ -164,37 +166,32 @@ def field(pid: int, /, *, default=MISSING, default_factory=MISSING):
     return dataclasses.field(metadata=metadata)
 
 
-def zigzag_to_signed(value: int):
+def zigzag_to_signed(value: int) -> int:
     result = value >> 1
     if value & 1:
         result = -result - 1
     return result
 
 
-def signed_to_zigzag(value: int):
+def signed_to_zigzag(value: int) -> int:
     if value >= 0:
         return value << 1
     return (-value - 1) << 1 | 1
 
 
-try:
-
-    @typing.dataclass_transform(field_specifiers=(field,))
-    def message(source: type):
-        return _message(source)
-except AttributeError:  # py <3.11
-
-    def message(source: type):
-        return _message(source)
+if not typing.TYPE_CHECKING and sys.version_info < (3, 11):
+    # evil python type hackery
+    typing.dataclass_transform = lambda *_, **__: lambda x: x
 
 
-def _message(source: type):
-    pid_lookup = {}
-    name_lookup = {}
+@typing.dataclass_transform(field_specifiers=(field,))
+def message(source: type) -> typing.Any:
+    pid_lookup: dict[int, ProtoConversionInfo] = {}
+    name_lookup: dict[str, ProtoConversionInfo] = {}
     setattr(source, _PID_LOOKUP_NAME, pid_lookup)
     setattr(source, _NAME_LOOKUP_NAME, name_lookup)
 
-    datacls = dataclasses.dataclass(**_SLOT_ARGS)(source)
+    datacls: type = dataclasses.dataclass(**_SLOT_ARGS)(source)
     hints = typing.get_type_hints(datacls, include_extras=True)
     for field in dataclasses.fields(datacls):
         pid = field.metadata.get(_METADATA_TAG_NAME)
@@ -234,7 +231,7 @@ def _message(source: type):
 _NON_PACKABLE_TYPES = (ProtoType.Bytes, ProtoType.String, ProtoType.Embed)
 
 
-def _resolve_type(py_type: type):
+def _resolve_type(py_type: type) -> tuple[type, ProtoType, ProtoMode]:
     origin = typing.get_origin(py_type)
 
     # Resolve optionals like `str | None`
@@ -264,14 +261,14 @@ def _resolve_type(py_type: type):
                 mode = ProtoMode.Packed
             return py_type, proto_type, mode
 
-        class Map(_MapBase):
+        class _Map(_MapBase):
             key: None = field(1, default=None)  # type: ignore
             value: None = field(2, default=None)  # type: ignore
 
         # resolve `from __future__ import annotations`
-        Map.__annotations__["key"] = typing.Union[args[0], None]
-        Map.__annotations__["value"] = typing.Union[args[1], None]
-        Map = message(Map)
+        _Map.__annotations__["key"] = typing.Union[args[0], None]
+        _Map.__annotations__["value"] = typing.Union[args[1], None]
+        Map = message(_Map)
 
         return Map, ProtoType.Embed, ProtoMode.Repeated
 

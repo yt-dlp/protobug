@@ -49,6 +49,15 @@ randomize = false
 parallel = false
 retries = 0
 
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy",
+  "pytest",
+]
+
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --disallow-untyped-defs --check-untyped-defs --non-interactive {args:src/protobug tests}"
+
 [tool.hatch.envs.hatch-test.scripts]
 run = "pytest{env:HATCH_TEST_ARGS:} {args}"
 run-cov = "echo Code coverage not implemented && exit 1"

@@ -21,7 +21,7 @@ class Writer:
         self._position = 0
         self._writer = writer
 
-    def write(self, value, /) -> int:
+    def write(self, value: typing.Any, /) -> int:
         # TODO(Grub4K): add support to write plain dict using a `py_type`
         py_type = type(value)
         schema: dict[str, ProtoConversionInfo] | None = getattr(
@@ -81,7 +81,7 @@ class Writer:
 
         return size
 
-    def write_type(self, value, proto_type: ProtoType, /):
+    def write_type(self, value: typing.Any, proto_type: ProtoType, /) -> int:
         if proto_type in (
             ProtoType.Int32,
             ProtoType.Int64,
@@ -161,11 +161,11 @@ class Writer:
         return self._writer.write(buffer)
 
 
-def dump(data, file: io.BufferedIOBase, /):
+def dump(data: typing.Any, file: io.BufferedIOBase, /) -> int:
     return Writer(file).write(data)
 
 
-def dumps(data, /) -> bytes:
+def dumps(data: typing.Any, /) -> bytes:
     with io.BytesIO() as buffer:
         Writer(buffer).write(data)
         return buffer.getvalue()

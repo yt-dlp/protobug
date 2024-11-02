@@ -10,7 +10,7 @@ class TestMessage:
     c: dict[protobug.UInt32, protobug.String] = protobug.field(5, default_factory=dict)
 
 
-def main():
+def main() -> None:
     print(f"{protobug.__name__} v{protobug.__version__}\n")
     for payload in [
         b"",

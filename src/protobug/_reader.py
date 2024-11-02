@@ -14,13 +14,23 @@ from protobug._core import zigzag_to_signed
 if typing.TYPE_CHECKING:
     from protobug._core import ProtoConversionInfo
 
+    T = typing.TypeVar("T")
+
 
 class Reader:
     def __init__(self, reader: io.BufferedIOBase, /):
         self._position = 0
         self._reader = reader
 
-    def read(self, py_type: type | None = None, /, *, length: int | None = None):
+    @typing.overload
+    def read(self, py_type: T, /, *, length: int | None = None) -> T: ...
+
+    @typing.overload
+    def read(self, /, *, length: int | None = None) -> dict[int, list]: ...
+
+    def read(  # type: ignore
+        self, py_type: type | None = None, /, *, length: int | None = None
+    ) -> typing.Any:
         schema: dict[int, ProtoConversionInfo] | None = None
         if py_type is not None:
             schema = getattr(py_type, _PID_LOOKUP_NAME, None)
@@ -31,8 +41,8 @@ class Reader:
         begin = self._position
         expected_position = begin + (length or 0)
 
-        result = {}
-        named_result = {}
+        result: dict[int, list] = {}
+        named_result: dict[str, typing.Any] = {}
         while length is None or self._position < expected_position:
             try:
                 key, value = self.read_record(schema)
@@ -78,7 +88,9 @@ class Reader:
             return result
         return py_type(**named_result)
 
-    def read_record(self, schema: dict[int, ProtoConversionInfo] | None = None, /):
+    def read_record(
+        self, schema: dict[int, ProtoConversionInfo] | None = None, /
+    ) -> tuple[int, typing.Any]:
         key, wire_type = self.read_tag()
         info = schema.get(key) if schema is not None else None
         if info is None:
@@ -88,7 +100,6 @@ class Reader:
         expected_wire_type = info.proto_type.wire_type()
         if not info.proto_mode.is_multiple():
             # Single item, read and decode type
-            # Map, Enum and Embed are decoded higher up
             if wire_type is not expected_wire_type:
                 msg = f"Unexpected value type for {info.name}: {wire_type}"
                 raise ValueError(msg)
@@ -117,9 +128,10 @@ class Reader:
 
         return key, results
 
-    def read_type(self, proto_type: ProtoType, py_type: type | None = None, /):
+    def read_type(
+        self, proto_type: ProtoType, py_type: type | None = None, /
+    ) -> typing.Any:
         if proto_type is ProtoType.Embed:
-            # TODO(Grub4K): reflect assert in overloads
             assert py_type is not None, "py_type is required when passing _PType.Embed"
             length: int = self.read_value(WireType.VARINT)  # type: ignore
             return self.read(py_type, length=length)
@@ -171,7 +183,7 @@ class Reader:
 
         raise ValueError(f"Invalid protobuf value: {value!r}")
 
-    def read_value(self, wire_type: WireType, /):
+    def read_value(self, wire_type: WireType, /) -> int | bytes:
         if wire_type in (WireType.SGROUP, WireType.EGROUP):
             # SGROUP and EGROUP are deprecated
             msg = f"{wire_type.name} is deprecated and not implemented"
@@ -195,11 +207,11 @@ class Reader:
             raise ValueError(msg)
         return data
 
-    def read_tag(self, /):
+    def read_tag(self, /) -> tuple[int, WireType]:
         value = self.read_varint()
         return value >> 3, WireType(value & 0b111)
 
-    def read_varint(self, /):
+    def read_varint(self, /) -> int:
         data = self._reader.read(1)
         if not data:
             raise EOFError
@@ -220,9 +232,6 @@ class Reader:
             shift += 7
 
         return result
-
-
-T = typing.TypeVar("T")
 
 
 @typing.overload

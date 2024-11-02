@@ -123,7 +123,7 @@ def test_load(
     expected_plain: dict | Exception,
     expected_decoded: T | Exception,
     msg: str,
-):
+) -> None:
     for decode_type, expected in [(None, expected_plain), (py_type, expected_decoded)]:
         msg = f"decoding to {decode_type or 'plain dict'}"
         if isinstance(expected, Exception):
@@ -135,7 +135,7 @@ def test_load(
             assert result == expected, msg
 
 
-def test_reader_behavior():
+def test_reader_behavior() -> None:
     with io.BytesIO() as buffer:
         protobug.load(buffer)
         assert not buffer.closed, "buffer should not be closed after a load"
