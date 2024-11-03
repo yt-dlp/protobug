@@ -41,22 +41,31 @@ version-file = "src/protobug/_version.py"
 [tool.hatch.envs.default]
 dependencies = ["pre-commit"]
 
+[tool.hatch.envs.types]
+installer = "uv"
+extra-dependencies = [
+  "mypy",
+  "pytest",
+  "types-setuptools",
+  "types-Pygments",
+]
+
+[tool.hatch.envs.types.scripts]
+check = "mypy {args:src/protobug tests}"
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_untyped_defs = true
+
 [tool.hatch.envs.hatch-test]
+installer = "uv"
 extra-args = [
   "--tb=short",
 ]
 randomize = false
 parallel = false
 retries = 0
-
-[tool.hatch.envs.types]
-extra-dependencies = [
-  "mypy",
-  "pytest",
-]
-
-[tool.hatch.envs.types.scripts]
-check = "mypy --install-types --disallow-untyped-defs --check-untyped-defs --non-interactive {args:src/protobug tests}"
 
 [tool.hatch.envs.hatch-test.scripts]
 run = "pytest{env:HATCH_TEST_ARGS:} {args}"
@@ -72,6 +81,7 @@ python = [
 ]
 
 [tool.hatch.envs.hatch-static-analysis]
+installer = "uv"
 dependencies = ["ruff==0.7.*"]
 config-path = "pyproject.toml"
 
