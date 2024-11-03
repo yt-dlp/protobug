@@ -32,3 +32,38 @@ from protobug._version import __version_tuple__
 from protobug._writer import Writer
 from protobug._writer import dump
 from protobug._writer import dumps
+
+__all__ = [
+    "MISSING",
+    "Bool",
+    "Bytes",
+    "Double",
+    "Fixed32",
+    "Fixed64",
+    "Float",
+    "Int32",
+    "Int64",
+    "ProtoConversionInfo",
+    "ProtoMode",
+    "ProtoType",
+    "SFixed32",
+    "SFixed64",
+    "SInt32",
+    "SInt64",
+    "String",
+    "UInt32",
+    "UInt64",
+    "WireType",
+    "field",
+    "message",
+    "signed_to_zigzag",
+    "zigzag_to_signed",
+    "Reader",
+    "load",
+    "loads",
+    "__version__",
+    "__version_tuple__",
+    "Writer",
+    "dump",
+    "dumps",
+]
