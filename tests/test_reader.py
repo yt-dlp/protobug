@@ -135,6 +135,14 @@ def test_load(
             assert result == expected, msg
 
 
+def test_unknown_read() -> None:
+    result = protobug.loads(b"\x08\x96\x01", tests.model.Message1)
+    assert getattr(result, "_unknown") == {}
+
+    result = protobug.loads(b"\x00\x00\x08\x96\x01\x00\x00", tests.model.Message1)
+    assert getattr(result, "_unknown") == {0: [0, 0]}
+
+
 def test_reader_behavior() -> None:
     with io.BytesIO() as buffer:
         protobug.load(buffer)

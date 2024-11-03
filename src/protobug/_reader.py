@@ -86,7 +86,9 @@ class Reader:
 
         if py_type is None:
             return result
-        return py_type(**named_result)
+        result_type = py_type(**named_result)
+        result_type._unknown = result
+        return result_type
 
     def read_record(
         self, schema: dict[int, ProtoConversionInfo] | None = None, /
