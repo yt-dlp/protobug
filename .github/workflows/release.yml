@@ -32,7 +32,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         tag: ${{ github.ref_name }}
       run: |
-        gh release create --notes-from-tag "${tag}" dist/*
+        gh release create --title "protobug v${tag}" --notes-from-tag "${tag}" dist/*
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@v1.9.0
