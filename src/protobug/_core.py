@@ -28,6 +28,9 @@ class WireType(enum.IntEnum):
     EGROUP = 4
     I32 = 5
 
+    def __str__(self) -> str:
+        return f"{type(self).__name__}.{self.name}"
+
 
 class ProtoMode(enum.Enum):
     Single = enum.auto()
@@ -191,7 +194,7 @@ def message(source: type) -> typing.Any:
     setattr(source, _PID_LOOKUP_NAME, pid_lookup)
     setattr(source, _NAME_LOOKUP_NAME, name_lookup)
 
-    datacls: type = dataclasses.dataclass(**_SLOT_ARGS)(source)
+    datacls: type = dataclasses.dataclass()(source)
     hints = typing.get_type_hints(datacls, include_extras=True)
     for field in dataclasses.fields(datacls):
         pid = field.metadata.get(_METADATA_TAG_NAME)
@@ -245,9 +248,15 @@ def _resolve_type(py_type: type) -> tuple[type, ProtoType, ProtoMode]:
 
             py_type = args[args[0] is type(None)]
             origin = typing.get_origin(py_type)
+            if origin in (list, dict):
+                msg = (
+                    f"found optional {origin.__name__}, "
+                    "remove the optional annotation"
+                )
+                raise TypeError(msg)
         else:
             types = ", ".join(map(repr, args))
-            msg = f"cannot handle non optional type annotation: {types}"
+            msg = f"cannot handle non optional union type annotation: {types}"
             raise NotImplementedError(msg)
 
     # resolved subscribed types `list[T]` and `dict[T, U]`

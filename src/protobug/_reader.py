@@ -103,7 +103,10 @@ class Reader:
         if not info.proto_mode.is_multiple():
             # Single item, read and decode type
             if wire_type is not expected_wire_type:
-                msg = f"Unexpected value type for {info.name}: {wire_type}"
+                msg = (
+                    f"unexpected value type for {info.name}: "
+                    f"expected {expected_wire_type}, got {wire_type}"
+                )
                 raise ValueError(msg)
             return key, self.read_type(info.proto_type, info.py_type)
 
@@ -112,7 +115,12 @@ class Reader:
             return key, [self.read_type(info.proto_type, info.py_type)]
 
         if wire_type is not WireType.LEN:
-            msg = f"Unexpected value type for {info.name}: {wire_type}"
+            expected_type_msg = (
+                str(WireType.LEN)
+                if expected_wire_type is WireType.LEN
+                else f"{expected_wire_type} or {WireType.LEN}"
+            )
+            msg = f"unexpected value type for {info.name}: expected {expected_type_msg}, got {wire_type}"
             raise ValueError(msg)
 
         # iteratively decode until we reach length
@@ -125,7 +133,7 @@ class Reader:
             results.append(self.read_type(info.proto_type, info.py_type))
 
         if self._position != expected_position:
-            msg = f"Non-matching packed length: expected {length}, got {self._position - begin}"
+            msg = f"non-matching packed length: expected {length}, got {self._position - begin}"
             raise ValueError(msg)
 
         return key, results
@@ -183,7 +191,7 @@ class Reader:
             assert isinstance(value, bytes)
             return int.from_bytes(value, "little", signed=True)
 
-        raise ValueError(f"Invalid protobuf value: {value!r}")
+        raise ValueError(f"invalid protobuf value: {value!r}")
 
     def read_value(self, wire_type: WireType, /) -> int | bytes:
         if wire_type in (WireType.SGROUP, WireType.EGROUP):

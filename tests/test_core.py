@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import typing
+
 import pytest
 
 import protobug
@@ -24,6 +26,14 @@ class Test4:
 
 class Test5:
     a: protobug.Int32 = protobug.field(-1)
+
+
+class Test6:
+    a: typing.Optional[list[protobug.Int32]] = protobug.field(1)
+
+
+class Test7:
+    a: typing.Optional[dict[protobug.Int32, protobug.Int32]] = protobug.field(1)
 
 
 message_type_errors_tests = [
@@ -51,6 +61,16 @@ message_type_errors_tests = [
         Test5,
         ValueError("negative id not allowed: -1"),
         "do not allow negative proto id",
+    ),
+    (
+        Test6,
+        TypeError("remove the optional annotation"),
+        "do not allow optional list",
+    ),
+    (
+        Test7,
+        TypeError("remove the optional annotation"),
+        "do not allow optional dict",
     ),
 ]
 
