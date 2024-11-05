@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import enum
 import typing
 
 import protobug
@@ -32,7 +31,7 @@ class Message5:
     f: list[protobug.Int32] = protobug.field(6)
 
 
-class MessageEnum(enum.IntEnum):
+class MessageEnum(protobug.Enum):
     A = 0
     B = 1
     C = 2

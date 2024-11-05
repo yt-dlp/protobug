@@ -4,6 +4,7 @@ from protobug._core import MISSING
 from protobug._core import Bool
 from protobug._core import Bytes
 from protobug._core import Double
+from protobug._core import Enum
 from protobug._core import Fixed32
 from protobug._core import Fixed64
 from protobug._core import Float
@@ -38,6 +39,7 @@ __all__ = [
     "Bool",
     "Bytes",
     "Double",
+    "Enum",
     "Fixed32",
     "Fixed64",
     "Float",

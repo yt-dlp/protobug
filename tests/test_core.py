@@ -112,3 +112,32 @@ def test_signed_to_zigzag(input: int, output: int) -> None:
 )
 def test_zigzag_to_signed(input: int, output: int) -> None:
     assert protobug.zigzag_to_signed(input) == output
+
+
+def test_enum() -> None:
+    class TestEnum1(protobug.Enum):
+        A = 1
+        B = 2
+
+    assert TestEnum1.A == 1
+
+    with pytest.raises(Exception):
+
+        class TestEnum2(protobug.Enum):
+            A = 1
+            B = ""  # type: ignore
+
+    assert TestEnum1(3) == 3
+    assert TestEnum1(3) == TestEnum1(3)
+    assert TestEnum1(3) is TestEnum1(3)
+    assert TestEnum1(3) not in TestEnum1
+    assert TestEnum1(3) != TestEnum1(4)
+    assert str(TestEnum1(3)) == "TestEnum1.?"
+    assert repr(TestEnum1(3)) == "<TestEnum1.?: 3>"
+
+    class TestEnum3(protobug.Enum, strict=True):
+        A = 1
+        B = 2
+
+    with pytest.raises(ValueError, match="3 is not a valid"):
+        TestEnum3(3)

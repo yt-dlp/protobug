@@ -182,6 +182,61 @@ def signed_to_zigzag(value: int) -> int:
     return (-value - 1) << 1 | 1
 
 
+_enum_smuggle_name = "__protobug_strict__"
+
+
+class _EnumMeta(enum.EnumMeta):
+    def __new__(
+        metacls,
+        cls: str,
+        bases: tuple[type, ...],
+        classdict: enum._EnumDict,
+        *,
+        strict: bool = False,
+        **kwargs: typing.Any,
+    ) -> _EnumMeta:
+        classdict[_enum_smuggle_name] = strict
+        return super().__new__(metacls, cls, bases, classdict, **kwargs)
+
+    def __init__(
+        self,
+        cls: str,
+        bases: tuple[type, ...],
+        classdict: enum._EnumDict,
+        /,
+        **kwargs: typing.Any,
+    ):
+        self._strict = classdict[_enum_smuggle_name]
+        self._unknowns: dict[int, Enum] = {}
+        del classdict[_enum_smuggle_name]
+        super().__init__(cls, bases, classdict, **kwargs)
+
+    def __contains__(cls, value: object) -> bool:
+        return value in cls._value2member_map_
+
+
+class Enum(enum.IntEnum, metaclass=_EnumMeta, strict=True):
+    @classmethod
+    def _missing_(cls, value: object, /) -> Enum | None:
+        if cls._strict or not isinstance(value, int):
+            return None
+
+        result = cls._unknowns.get(value)
+        if result is None:
+            result = int.__new__(cls, value)
+            result._name_ = "?"
+            result._value_ = value
+            cls._unknowns[value] = result
+
+        return result
+
+    def __str__(self) -> str:
+        return f"{type(self).__name__}.{self.name}"
+
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__}.{self.name}: {self.value!r}>"
+
+
 if not typing.TYPE_CHECKING and sys.version_info < (3, 11):
     # evil python type hackery
     typing.dataclass_transform = lambda *_, **__: lambda x: x
@@ -286,7 +341,7 @@ def _resolve_type(py_type: type) -> tuple[type, ProtoType, ProtoMode]:
     if py_type in _ALLOWED_VALUES:
         py_type, proto_type = typing.get_args(py_type)
 
-    elif issubclass(py_type, enum.IntEnum):
+    elif issubclass(py_type, protobug.Enum):
         proto_type = ProtoType.Enum
 
     elif dataclasses.is_dataclass(py_type):
