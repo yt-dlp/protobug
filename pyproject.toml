@@ -11,10 +11,10 @@ requires-python = ">=3.9"
 keywords = ["protobuf"]
 license = { file = "LICENSE" }
 authors = [
-  { name = "Simon Sawicki", email = "contact@grub4k.xyz" },
+  { name = "Simon Sawicki", email = "contact@grub4k.dev" },
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -26,11 +26,10 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/Grub4K/protobug?tab=readme-ov-file"
-Repository = "https://github.com/Grub4K/protobug"
-Issues = "https://github.com/Grub4K/protobug/issues"
-Source = "https://github.com/Grub4K/protobug"
-Funding = "https://github.com/sponsors/Grub4K"
+Documentation = "https://github.com/yt-dlp/protobug?tab=readme-ov-file"
+Repository = "https://github.com/yt-dlp/protobug"
+Issues = "https://github.com/yt-dlp/protobug/issues"
+Source = "https://github.com/yt-dlp/protobug"
 
 [tool.hatch.version]
 source = "vcs"
@@ -39,6 +38,7 @@ source = "vcs"
 version-file = "src/protobug/_version.py"
 
 [tool.hatch.envs.default]
+installer = "uv"
 dependencies = ["pre-commit"]
 
 [tool.hatch.envs.types]
@@ -82,7 +82,7 @@ python = [
 
 [tool.hatch.envs.hatch-static-analysis]
 installer = "uv"
-dependencies = ["ruff==0.7.*"]
+dependencies = ["ruff==0.11.*"]
 config-path = "pyproject.toml"
 
 [tool.ruff.lint]

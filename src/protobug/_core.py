@@ -305,8 +305,7 @@ def _resolve_type(py_type: type) -> tuple[type, ProtoType, ProtoMode]:
             origin = typing.get_origin(py_type)
             if origin in (list, dict):
                 msg = (
-                    f"found optional {origin.__name__}, "
-                    "remove the optional annotation"
+                    f"found optional {origin.__name__}, remove the optional annotation"
                 )
                 raise TypeError(msg)
         else:
