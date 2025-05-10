@@ -141,3 +141,19 @@ def test_enum() -> None:
 
     with pytest.raises(ValueError, match="3 is not a valid"):
         TestEnum3(3)
+
+
+def test_annotation_resolving() -> None:
+    # See: https://github.com/yt-dlp/protobug/issues/1
+    @protobug.message
+    class Message1:
+        field: protobug.Int32 | None = protobug.field(1, default=None)
+
+    @protobug.message
+    class Message2:
+        field: None | protobug.Int32 = protobug.field(1, default=None)
+
+    @protobug.message
+    class OuterMessage:
+        message1: Message1 | None = protobug.field(1, default=None)
+        message2: Message2 | None = protobug.field(2, default=None)

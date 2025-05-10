@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import enum
+import inspect
 import struct
 import sys
+import types
 import typing
 
 import protobug
@@ -242,6 +244,37 @@ if not typing.TYPE_CHECKING and sys.version_info < (3, 11):
     typing.dataclass_transform = lambda *_, **__: lambda x: x
 
 
+def _forward_eval(
+    cls: type,
+    localns: dict[str, typing.Any],
+    globalns: dict[str, typing.Any],
+) -> dict[str, type]:
+    if sys.version_info >= (3, 10):
+        return typing.get_type_hints(cls, globalns, localns, include_extras=True)
+
+    # apply translation (`A | B` => `Union[A, B]`)
+    assert isinstance(cls, type), "cannot forward eval non class"
+
+    class _Sub(cls):
+        pass
+
+    hints = getattr(_Sub, "__annotations__", None)
+    if not hints:
+        return {}
+
+    for key, value in hints.items():
+        if isinstance(value, str) and "|" in value:
+            parts = ", ".join(value.split("|"))
+            hints[key] = f"__typing.Union[{parts}]"
+
+    return typing.get_type_hints(
+        _Sub,
+        {**globalns, "__typing": typing},
+        localns,
+        include_extras=True,
+    )
+
+
 @typing.dataclass_transform(field_specifiers=(field,))
 def message(source: type) -> typing.Any:
     pid_lookup: dict[int, ProtoConversionInfo] = {}
@@ -250,7 +283,8 @@ def message(source: type) -> typing.Any:
     setattr(source, _NAME_LOOKUP_NAME, name_lookup)
 
     datacls: type = dataclasses.dataclass()(source)
-    hints = typing.get_type_hints(datacls, include_extras=True)
+    frame = inspect.stack()[1].frame
+    hints = _forward_eval(datacls, frame.f_locals, frame.f_globals)
     for field in dataclasses.fields(datacls):
         pid = field.metadata.get(_METADATA_TAG_NAME)
         if pid is None:
@@ -292,13 +326,18 @@ _NON_PACKABLE_TYPES = (ProtoType.Bytes, ProtoType.String, ProtoType.Embed)
 def _resolve_type(py_type: type) -> tuple[type, ProtoType, ProtoMode]:
     origin = typing.get_origin(py_type)
 
-    # Resolve optionals like `str | None`
-    if origin is typing.Union:
+    # Resolve optionals like `Optional[str]`/`str | None`
+    # Note: `str | None` results in a custom `types.UnionType`
+    if origin is typing.Union or (
+        sys.version_info >= (3, 10)
+        and isinstance(origin, type)
+        and issubclass(origin, types.UnionType)
+    ):
         args = typing.get_args(py_type)
         if type(None) in args:
             if len(args) != 2:
-                types = ", ".join(map(repr, args))
-                msg = f"need exactly 2 types, got {types}"
+                py_types = ", ".join(map(repr, args))
+                msg = f"need exactly 2 types, got {py_types}"
                 raise TypeError(msg)
 
             py_type = args[args[0] is type(None)]
@@ -309,8 +348,8 @@ def _resolve_type(py_type: type) -> tuple[type, ProtoType, ProtoMode]:
                 )
                 raise TypeError(msg)
         else:
-            types = ", ".join(map(repr, args))
-            msg = f"cannot handle non optional union type annotation: {types}"
+            py_types = ", ".join(map(repr, args))
+            msg = f"cannot handle non optional union type annotation: {py_types}"
             raise NotImplementedError(msg)
 
     # resolved subscribed types `list[T]` and `dict[T, U]`
@@ -340,7 +379,7 @@ def _resolve_type(py_type: type) -> tuple[type, ProtoType, ProtoMode]:
     if py_type in _ALLOWED_VALUES:
         py_type, proto_type = typing.get_args(py_type)
 
-    elif issubclass(py_type, protobug.Enum):
+    elif isinstance(py_type, type) and issubclass(py_type, protobug.Enum):
         proto_type = ProtoType.Enum
 
     elif dataclasses.is_dataclass(py_type):
