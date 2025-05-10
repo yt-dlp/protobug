@@ -244,11 +244,15 @@ if not typing.TYPE_CHECKING and sys.version_info < (3, 11):
     typing.dataclass_transform = lambda *_, **__: lambda x: x
 
 
-def _forward_eval(
-    cls: type,
-    localns: dict[str, typing.Any],
-    globalns: dict[str, typing.Any],
-) -> dict[str, type]:
+def _forward_eval_hints(cls: type) -> dict[str, type]:
+    # self -> message -> protobug.message()
+    frame = inspect.stack()[2].frame
+    globalns = {
+        **frame.f_globals,
+        **frame.f_locals,
+    }
+    localns = cls.__dict__
+
     if sys.version_info >= (3, 10):
         return typing.get_type_hints(cls, globalns, localns, include_extras=True)
 
@@ -258,21 +262,17 @@ def _forward_eval(
     class _Sub(cls):
         pass
 
-    hints = getattr(_Sub, "__annotations__", None)
-    if not hints:
+    annotations = getattr(_Sub, "__annotations__", None)
+    if not annotations:
         return {}
 
-    for key, value in hints.items():
+    globalns["__typing"] = typing
+    for key, value in annotations.items():
         if isinstance(value, str) and "|" in value:
             parts = ", ".join(value.split("|"))
-            hints[key] = f"__typing.Union[{parts}]"
+            annotations[key] = f"__typing.Union[{parts}]"
 
-    return typing.get_type_hints(
-        _Sub,
-        {**globalns, "__typing": typing},
-        localns,
-        include_extras=True,
-    )
+    return typing.get_type_hints(_Sub, globalns, localns, include_extras=True)
 
 
 @typing.dataclass_transform(field_specifiers=(field,))
@@ -283,8 +283,7 @@ def message(source: type) -> typing.Any:
     setattr(source, _NAME_LOOKUP_NAME, name_lookup)
 
     datacls: type = dataclasses.dataclass()(source)
-    frame = inspect.stack()[1].frame
-    hints = _forward_eval(datacls, frame.f_locals, frame.f_globals)
+    hints = _forward_eval_hints(source)
     for field in dataclasses.fields(datacls):
         pid = field.metadata.get(_METADATA_TAG_NAME)
         if pid is None:

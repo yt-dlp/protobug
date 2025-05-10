@@ -154,6 +154,13 @@ def test_annotation_resolving() -> None:
         field: None | protobug.Int32 = protobug.field(1, default=None)
 
     @protobug.message
-    class OuterMessage:
+    class Message3:
         message1: Message1 | None = protobug.field(1, default=None)
         message2: Message2 | None = protobug.field(2, default=None)
+
+    @protobug.message
+    class Message4:
+        class Message4Nested(protobug.Enum, strict=False):
+            A = 1
+
+        nested: Message4Nested | None = protobug.field(1, default=None)
