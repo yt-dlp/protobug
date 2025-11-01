@@ -2,7 +2,6 @@ name: Checks
 on:
   push:
     branches:
-    - main
   pull_request:
 
 permissions:
@@ -12,36 +11,54 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version:
+        - "3.10"
+        - "3.11"
+        - "3.12"
+        - "3.13"
+        - "3.14"
     steps:
-    - uses: actions/checkout@v4
-    - uses: astral-sh/setup-uv@v6
-    - name: Install hatch
-      run: uv tool install hatch
-
+    - uses: actions/checkout@v5
+    - uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        python-version: ${{ matrix.version }}
     - name: Run tests
-      run: hatch test --all
+      run: uvx hatch test
 
   static-analysis:
     name: Static code analysis
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: astral-sh/setup-uv@v6
-    - name: Install hatch
-      run: uv tool install hatch
-
+    - uses: actions/checkout@v5
+    - uses: astral-sh/setup-uv@v7
     - name: Run static code analysis
-      run: hatch fmt --check
+      run: uvx hatch fmt --check
 
   type-checking:
     name: Type checking
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        checker:
+        - mypy
+        - pyright
     steps:
-    - uses: actions/checkout@v4
-    - uses: astral-sh/setup-uv@v3
-    - name: Install hatch
-      run: uv tool install hatch
-
+    - uses: actions/checkout@v5
+    - uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
     - name: Run type tests
-      run: hatch run types:check
+      run: uvx hatch run ${{ matrix.checker }}:check
 
+  all:
+    runs-on: ubuntu-latest
+    needs:
+    - tests
+    - static-analysis
+    - type-checking
+    steps:
+    - run: |
+        true

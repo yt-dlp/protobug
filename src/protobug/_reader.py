@@ -23,12 +23,14 @@ class Reader:
         self._reader = reader
 
     @typing.overload
-    def read(self, py_type: T, /, *, length: int | None = None) -> T: ...
+    def read(self, py_type: type[T], /, *, length: int | None = None) -> T: ...
 
     @typing.overload
-    def read(self, /, *, length: int | None = None) -> dict[int, list]: ...
+    def read(
+        self, py_type: None, /, *, length: int | None = None
+    ) -> dict[int, list]: ...
 
-    def read(  # type: ignore
+    def read(
         self, py_type: type | None = None, /, *, length: int | None = None
     ) -> typing.Any:
         schema: dict[int, ProtoConversionInfo] | None = None
@@ -124,7 +126,7 @@ class Reader:
             raise ValueError(msg)
 
         # iteratively decode until we reach length
-        length: int = self.read_value(WireType.VARINT)  # type: ignore
+        length = typing.cast(int, self.read_value(WireType.VARINT))
         begin = self._position
         expected_position = begin + length
 
@@ -143,7 +145,7 @@ class Reader:
     ) -> typing.Any:
         if proto_type is ProtoType.Embed:
             assert py_type is not None, "py_type is required when passing _PType.Embed"
-            length: int = self.read_value(WireType.VARINT)  # type: ignore
+            length = typing.cast(int, self.read_value(WireType.VARINT))
             return self.read(py_type, length=length)
 
         value = self.read_value(proto_type.wire_type())

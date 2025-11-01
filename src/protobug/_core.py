@@ -8,6 +8,9 @@ import sys
 import types
 import typing
 
+if sys.version_info >= (3, 14):
+    import annotationlib
+
 import protobug
 
 _METADATA_TAG_NAME = f"__{protobug.__name__}_metadata"
@@ -219,7 +222,7 @@ class _EnumMeta(enum.EnumMeta):
 
 class Enum(enum.IntEnum, metaclass=_EnumMeta, strict=True):
     @classmethod
-    def _missing_(cls, value: object, /) -> Enum | None:
+    def _missing_(cls, /, value: object) -> Enum | None:
         if cls._strict or not isinstance(value, int):
             return None
 
@@ -253,26 +256,16 @@ def _forward_eval_hints(cls: type) -> dict[str, type]:
     }
     localns = cls.__dict__
 
-    if sys.version_info >= (3, 10):
-        return typing.get_type_hints(cls, globalns, localns, include_extras=True)
+    if sys.version_info >= (3, 14):
+        return annotationlib.get_annotations(
+            cls,
+            globals=globalns,
+            locals=localns,
+            eval_str=True,
+            format=annotationlib.Format.VALUE,
+        )
 
-    # apply translation (`A | B` => `Union[A, B]`)
-    assert isinstance(cls, type), "cannot forward eval non class"
-
-    class _Sub(cls):
-        pass
-
-    annotations = getattr(_Sub, "__annotations__", None)
-    if not annotations:
-        return {}
-
-    globalns["__typing"] = typing
-    for key, value in annotations.items():
-        if isinstance(value, str) and "|" in value:
-            parts = ", ".join(value.split("|"))
-            annotations[key] = f"__typing.Union[{parts}]"
-
-    return typing.get_type_hints(_Sub, globalns, localns, include_extras=True)
+    return typing.get_type_hints(cls, globalns, localns, include_extras=True)
 
 
 @typing.dataclass_transform(field_specifiers=(field,))
@@ -299,7 +292,7 @@ def message(source: type) -> typing.Any:
             raise ValueError(msg)
 
         try:
-            py_type, proto_type, proto_mode = _resolve_type(hints[field.name])  # type: ignore
+            py_type, proto_type, proto_mode = _resolve_type(hints[field.name])
         except (TypeError, ValueError) as error:
             msg = f"{source.__qualname__}.{field.name}: {error}"
             raise type(error)(msg) from None
@@ -363,8 +356,8 @@ def _resolve_type(py_type: type) -> tuple[type, ProtoType, ProtoMode]:
             return py_type, proto_type, mode
 
         class _Map(_MapBase):
-            key: None = field(1, default=None)  # type: ignore
-            value: None = field(2, default=None)  # type: ignore
+            key: None = field(1, default=None)
+            value: None = field(2, default=None)
 
         # resolve `from __future__ import annotations`
         _Map.__annotations__["key"] = typing.Union[args[0], None]

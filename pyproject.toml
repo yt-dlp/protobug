@@ -7,7 +7,7 @@ name = "protobug"
 dynamic = ["version"]
 description = "A pythonic protobuf library using dataclasses and enums"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["protobuf"]
 license = { file = "LICENSE" }
 authors = [
@@ -16,11 +16,11 @@ authors = [
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = []
@@ -41,7 +41,7 @@ version-file = "src/protobug/_version.py"
 installer = "uv"
 dependencies = ["pre-commit"]
 
-[tool.hatch.envs.types]
+[tool.hatch.envs.mypy]
 installer = "uv"
 extra-dependencies = [
   "mypy",
@@ -50,8 +50,18 @@ extra-dependencies = [
   "types-Pygments",
 ]
 
-[tool.hatch.envs.types.scripts]
+[tool.hatch.envs.mypy.scripts]
 check = "mypy {args:src/protobug tests}"
+
+[tool.hatch.envs.pyright]
+installer = "uv"
+extra-dependencies = [
+  "pyright",
+  "pytest",
+]
+
+[tool.hatch.envs.pyright.scripts]
+check = "pyright {args:src/protobug tests}"
 
 [tool.mypy]
 python_version = "3.11"
@@ -73,16 +83,16 @@ run-cov = "echo Code coverage not implemented && exit 1"
 
 [[tool.hatch.envs.hatch-test.matrix]]
 python = [
-  "3.9",
   "3.10",
   "3.11",
   "3.12",
   "3.13",
+  "3.14",
 ]
 
 [tool.hatch.envs.hatch-static-analysis]
 installer = "uv"
-dependencies = ["ruff==0.11.*"]
+dependencies = ["ruff==0.14.*"]
 config-path = "pyproject.toml"
 
 [tool.ruff.lint]
