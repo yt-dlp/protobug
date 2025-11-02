@@ -21,21 +21,29 @@ jobs:
         - "3.14"
     steps:
     - uses: actions/checkout@v5
-    - uses: astral-sh/setup-uv@v7
+    - uses: actions/setup-python@v6
       with:
-        enable-cache: true
+        cache: pip
         python-version: ${{ matrix.version }}
+    - name: Install dependencies
+      run: pip install --group test .
     - name: Run tests
-      run: uvx hatch test
+      run: pytest
 
   static-analysis:
     name: Static code analysis
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
-    - uses: astral-sh/setup-uv@v7
+    - uses: actions/setup-python@v6
+      with:
+        cache: pip
+    - name: Install dependencies
+      run: pip install --group static-analysis
     - name: Run static code analysis
-      run: uvx hatch fmt --check
+      run: |
+        ruff check --output-format github
+        ruff format --check --preview --output-format github
 
   type-checking:
     name: Type checking
@@ -47,11 +55,13 @@ jobs:
         - pyright
     steps:
     - uses: actions/checkout@v5
-    - uses: astral-sh/setup-uv@v7
+    - uses: actions/setup-python@v6
       with:
-        enable-cache: true
+        cache: pip
+    - name: Install dependencies
+      run: pip install --group ${{ matrix.checker }} .
     - name: Run type tests
-      run: uvx hatch run ${{ matrix.checker }}:check
+      run: ${{ matrix.checker }} src/ tests/
 
   all:
     runs-on: ubuntu-latest

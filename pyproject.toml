@@ -1,5 +1,8 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = [
+  "hatchling>=1.27.0",
+  "hatch-vcs",
+]
 build-backend = "hatchling.build"
 
 [project]
@@ -9,7 +12,8 @@ description = "A pythonic protobuf library using dataclasses and enums"
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["protobuf"]
-license = { file = "LICENSE" }
+license = "Unlicense"
+license-files = ["LICENSE"]
 authors = [
   { name = "Simon Sawicki", email = "contact@grub4k.dev" },
 ]
@@ -25,6 +29,22 @@ classifiers = [
 ]
 dependencies = []
 
+[dependency-groups]
+test = [
+  "pytest",
+]
+mypy = [
+  "mypy",
+  {include-group = "test"},
+]
+pyright = [
+  "pyright",
+  {include-group = "test"},
+]
+static-analysis = [
+  "ruff==0.14.*",
+]
+
 [project.urls]
 Documentation = "https://github.com/yt-dlp/protobug?tab=readme-ov-file"
 Repository = "https://github.com/yt-dlp/protobug"
@@ -37,63 +57,10 @@ source = "vcs"
 [tool.hatch.build.hooks.vcs]
 version-file = "src/protobug/_version.py"
 
-[tool.hatch.envs.default]
-installer = "uv"
-dependencies = ["pre-commit"]
-
-[tool.hatch.envs.mypy]
-installer = "uv"
-extra-dependencies = [
-  "mypy",
-  "pytest",
-  "types-setuptools",
-  "types-Pygments",
-]
-
-[tool.hatch.envs.mypy.scripts]
-check = "mypy {args:src/protobug tests}"
-
-[tool.hatch.envs.pyright]
-installer = "uv"
-extra-dependencies = [
-  "pyright",
-  "pytest",
-]
-
-[tool.hatch.envs.pyright.scripts]
-check = "pyright {args:src/protobug tests}"
-
 [tool.mypy]
 python_version = "3.11"
 check_untyped_defs = true
 disallow_untyped_defs = true
-
-[tool.hatch.envs.hatch-test]
-installer = "uv"
-extra-args = [
-  "--tb=short",
-]
-randomize = false
-parallel = false
-retries = 0
-
-[tool.hatch.envs.hatch-test.scripts]
-run = "pytest{env:HATCH_TEST_ARGS:} {args}"
-run-cov = "echo Code coverage not implemented && exit 1"
-
-[[tool.hatch.envs.hatch-test.matrix]]
-python = [
-  "3.10",
-  "3.11",
-  "3.12",
-  "3.13",
-  "3.14",
-]
-
-[tool.hatch.envs.hatch-static-analysis]
-installer = "uv"
-dependencies = ["ruff==0.14.*"]
-config-path = "pyproject.toml"
 
 [tool.ruff.lint]
 select = [

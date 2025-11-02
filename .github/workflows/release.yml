@@ -18,11 +18,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - uses: astral-sh/setup-uv@v7
+    - uses: actions/setup-python@v6
       with:
-        version: latest
+        cache: pip
+    - name: Install dependencies
+      run: pip install build
     - name: Build package
-      run: uv build
+      run: python -m build
 
     - name: Create release
       env:
