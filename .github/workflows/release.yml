@@ -17,15 +17,14 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: astral-sh/setup-uv@v3
-      with:
-        version: latest
-    - name: Install hatch
-      run: uv tool install hatch
-
+    - uses: actions/checkout@v5
+    - uses: actions/setup-python@v6
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade build
     - name: Build package
-      run: hatch build
+      run: python -m build
 
     - name: Create release
       env:
