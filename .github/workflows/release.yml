@@ -4,20 +4,21 @@ on:
     tags:
       - '*'
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
     permissions:
       # trusted publishing
       id-token: write
       # creating a release
       contents: write
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
     - name: Install dependencies
       run: |
