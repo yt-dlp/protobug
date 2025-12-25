@@ -8,6 +8,7 @@ permissions: {}
 
 jobs:
   publish:
+    name: Publish release
     permissions:
       # trusted publishing
       id-token: write

@@ -143,6 +143,7 @@ jobs:
         "${CHECKER}" src/ tests/
 
   all:
+    name: all
     needs:
     - actionlint
     - zizmor
