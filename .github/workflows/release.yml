@@ -10,10 +10,8 @@ jobs:
   publish:
     name: Publish release
     permissions:
-      # trusted publishing
-      id-token: write
-      # creating a release
-      contents: write
+      id-token: write  # Needed for PyPI trusted publishing
+      contents: write  # Needed by gh to publish release to Github
     runs-on: ubuntu-latest
 
     steps:
