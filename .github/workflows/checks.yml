@@ -18,8 +18,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  ACTIONLINT_VERSION: "1.7.9"
-  ACTIONLINT_SHA256SUM: 233b280d05e100837f4af1433c7b40a5dcb306e3aa68fb4f17f8a7f45a7df7b4
+  ACTIONLINT_VERSION: "1.7.11"
+  ACTIONLINT_SHA256SUM: 900919a84f2229bac68ca9cd4103ea297abc35e9689ebb842c6e34a3d1b01b0a
   ACTIONLINT_REPO: https://github.com/rhysd/actionlint
 
 jobs:
@@ -29,10 +29,10 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         persist-credentials: false
-    - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548  # v6.1.0
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
       with:
         python-version: "3.14"
     - name: Install requirements
@@ -57,15 +57,15 @@ jobs:
       actions: read  # Needed by zizmorcore/zizmor-action if repository is private
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         persist-credentials: false
     - name: Run zizmor
-      uses: zizmorcore/zizmor-action@e639db99335bc9038abc0e066dfcd72e23d26fb4  # v0.3.0
+      uses: zizmorcore/zizmor-action@71321a20a9ded102f6e9ce5718a2fcec2c4f70d8  # v0.5.2
       with:
         advanced-security: false
         persona: pedantic
-        version: v1.19.0
+        version: v1.23.1
 
   tests:
     name: Tests
@@ -81,10 +81,10 @@ jobs:
         - "3.13"
         - "3.14"
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         persist-credentials: false
-    - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548  # v6.1.0
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
       with:
         python-version: ${{ matrix.version }}
     - name: Install dependencies
@@ -100,10 +100,10 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         persist-credentials: false
-    - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548  # v6.1.0
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
       with:
         python-version: "3.14"
     - name: Install dependencies
@@ -128,10 +128,10 @@ jobs:
     env:
       CHECKER: ${{ matrix.checker }}
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         persist-credentials: false
-    - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548  # v6.1.0
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
       with:
         python-version: "3.14"
     - name: Install dependencies
