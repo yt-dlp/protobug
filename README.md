@@ -15,7 +15,8 @@ class Message:
     c: dict[protobug.UInt32, protobug.String] = protobug.field(3, default_factory=dict)
 ```
 
-After defining the model, you can freely decode and encode messages. protobug's API follows the familiar `load`/`loads` & `dump`/`dumps` convention:
+After defining the model, you can freely decode and encode messages.
+`protobug`'s API follows the familiar `load`/`loads` & `dump`/`dumps` convention:
 ```py
 >>> payload = b"\x0a\x0bhello world"
 >>> protobug.loads(payload, Message)
